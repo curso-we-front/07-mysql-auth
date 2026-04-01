@@ -1,7 +1,5 @@
-const pool = require('./connection');
-const bcrypt = require('bcrypt');
-
-const SALT_ROUNDS = 10;
+const pool = require("./connection");
+const bcrypt = require("bcrypt");
 
 /**
  * Tarea 1a: Crear un nuevo usuario.
@@ -14,7 +12,20 @@ const SALT_ROUNDS = 10;
  * @returns {Promise<object>} usuario creado
  */
 async function createUser({ name, email, password }) {
-  // TODO: implementar
+  const SALT_ROUNDS = 10;
+  const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+
+  const [result] = await pool.execute(
+    "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+    [name, email, password_hash],
+  );
+
+  const [rows] = await pool.execute(
+    "SELECT id, name, email, role FROM users WHERE id = ?",
+    [result.insertId],
+  );
+
+  return rows[0];
 }
 
 /**
@@ -24,7 +35,10 @@ async function createUser({ name, email, password }) {
  * @returns {Promise<object|null>} usuario encontrado o null
  */
 async function findUserByEmail(email) {
-  // TODO: implementar
+  const [user] = await pool.query("SELECT * FROM users WHERE email = ?", [
+    email,
+  ]);
+  return user[0] || null;
 }
 
 /**
@@ -34,7 +48,8 @@ async function findUserByEmail(email) {
  * @returns {Promise<object|null>} usuario encontrado o null
  */
 async function findUserById(id) {
-  // TODO: implementar
+  const [user] = await pool.query("SELECT * FROM users WHERE id = ?", [id]);
+  return user[0] || null;
 }
 
 module.exports = { createUser, findUserByEmail, findUserById };

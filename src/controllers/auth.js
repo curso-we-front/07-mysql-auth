@@ -1,6 +1,7 @@
-require('dotenv').config();
-const jwt = require('jsonwebtoken');
-const { createUser, findUserByEmail } = require('../db/users');
+require("dotenv").config();
+const jwt = require("jsonwebtoken");
+const { createUser, findUserByEmail } = require("../db/users");
+const bcrypt = require("bcrypt");
 
 /**
  * Tarea 2a: Registro de usuario.
@@ -14,7 +15,38 @@ const { createUser, findUserByEmail } = require('../db/users');
  * - Responde 409 si el email ya existe (el error de MySQL tiene código 'ER_DUP_ENTRY')
  */
 async function register(req, res, next) {
-  // TODO: implementar
+  try {
+    const { name, email, password } = req.body;
+
+    const user = await createUser({ name, email, password });
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      },
+    );
+
+    res.status(201).json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      token,
+    });
+  } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ error: "El email ya existe" });
+    }
+    next(error);
+  }
 }
 
 /**
@@ -31,7 +63,40 @@ async function register(req, res, next) {
  *   (usa siempre el mismo mensaje para no filtrar información)
  */
 async function login(req, res, next) {
-  // TODO: implementar
+  const { email, password } = req.body;
+
+  try {
+    const findUser = await findUserByEmail(email);
+
+    if (!findUser) {
+      return res.status(401).json({ error: "Usuario no encontrado" });
+    }
+
+    const validPassword = await bcrypt.compare(
+      password,
+      findUser.password_hash,
+    );
+
+    if (!validPassword) {
+      return res.status(401).json({ error: "Contraseña incorrecta" });
+    }
+
+    const token = jwt.sign(
+      {
+        id: findUser.id,
+        email: findUser.email,
+        role: findUser.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN,
+      },
+    );
+
+    res.status(200).json({ findUser, token });
+  } catch (error) {
+    next(error);
+  }
 }
 
 module.exports = { register, login };
