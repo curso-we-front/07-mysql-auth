@@ -1,4 +1,3 @@
-require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const { createUser, findUserByEmail } = require("../db/users");
 const bcrypt = require("bcrypt");
@@ -66,26 +65,26 @@ async function login(req, res, next) {
   const { email, password } = req.body;
 
   try {
-    const findUser = await findUserByEmail(email);
+    const user = await findUserByEmail(email);
 
-    if (!findUser) {
-      return res.status(401).json({ error: "Usuario no encontrado" });
+    if (!user) {
+      return res.status(401).json({ error: "Credenciales inválidas" });
     }
 
     const validPassword = await bcrypt.compare(
       password,
-      findUser.password_hash,
+      user.password_hash,
     );
 
     if (!validPassword) {
-      return res.status(401).json({ error: "Contraseña incorrecta" });
+      return res.status(401).json({ error: "Credenciales inválidas" });
     }
 
     const token = jwt.sign(
       {
-        id: findUser.id,
-        email: findUser.email,
-        role: findUser.role,
+        id: user.id,
+        email: user.email,
+        role: user.role,
       },
       process.env.JWT_SECRET,
       {
@@ -93,7 +92,14 @@ async function login(req, res, next) {
       },
     );
 
-    res.status(200).json({ findUser, token });
+    const newUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    res.status(200).json({ newUser, token });
   } catch (error) {
     next(error);
   }

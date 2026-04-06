@@ -1,6 +1,4 @@
-require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 
 /**
  * Tarea 3: Middleware de autenticación JWT.

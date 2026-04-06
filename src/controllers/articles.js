@@ -14,11 +14,16 @@ async function getAll(req, res, next) {
 async function getById(req, res, next) {
   try {
     const [rows] = await pool.execute(
-      "SELECT id, title, content, author, published, owner_id, created_at FROM articles WHERE id = ?",
+      `SELECT id, title, content, author, published, owner_id, created_at
+       FROM articles
+       WHERE id = ? AND published = true`,
       [req.params.id],
     );
-    if (rows.length === 0)
+
+    if (rows.length === 0) {
       return res.status(404).json({ error: "Artículo no encontrado" });
+    }
+
     res.json(rows[0]);
   } catch (err) {
     next(err);
