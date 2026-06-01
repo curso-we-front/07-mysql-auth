@@ -74,7 +74,8 @@ describe('Rutas protegidas', () => {
       password: testUser.password
     });
     const token = loginRes.body.token;
-
+    console.log("login res en test", loginRes.body); //borrar ------------------------------------------------------------------------------------------
+    
     const res = await request
       .post('/articles')
       .set('Authorization', `Bearer ${token}`)
