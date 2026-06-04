@@ -33,7 +33,7 @@ async function create(req, res, next) {
       [title, content, author, published, owner_id]
     );
     const [rows] = await pool.execute('SELECT * FROM articles WHERE id = ?', [result.insertId]);
-    res.status(201).json(rows[0]);
+    return res.status(201).json(rows[0]);
   } catch (err) {
     next(err);
   }

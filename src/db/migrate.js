@@ -12,10 +12,10 @@ async function migrate() {
   });
 
   const db = process.env.DB_NAME || 'blog';
-  await connection.execute(`CREATE DATABASE IF NOT EXISTS \`${db}\``);
-  await connection.execute(`USE \`${db}\``);
+  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${db}\``);
+  await connection.query(`USE \`${db}\``);
 
-  await connection.execute(`
+  await connection.query(`
     CREATE TABLE IF NOT EXISTS users (
       id            INT AUTO_INCREMENT PRIMARY KEY,
       email         VARCHAR(255) NOT NULL UNIQUE,
@@ -26,7 +26,7 @@ async function migrate() {
     )
   `);
 
-  await connection.execute(`
+  await connection.query(`
     CREATE TABLE IF NOT EXISTS articles (
       id         INT AUTO_INCREMENT PRIMARY KEY,
       title      VARCHAR(255) NOT NULL,
@@ -39,7 +39,7 @@ async function migrate() {
     )
   `);
 
-  const [rows] = await connection.execute('SELECT COUNT(*) AS count FROM articles');
+  const [rows] = await connection.query('SELECT COUNT(*) AS count FROM articles');
   if (rows[0].count === 0) {
     const articlesPath = path.join(__dirname, '../../data/articles.json');
     const articles = JSON.parse(fs.readFileSync(articlesPath, 'utf-8'));
