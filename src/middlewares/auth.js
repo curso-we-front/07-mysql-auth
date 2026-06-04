@@ -23,15 +23,14 @@ function requireAuth(req, res, next) {
     }
 
     const token = authHeader.split(" ")[1];
-    console.log("token en codigo", token); //---Borrar-------------------------------------
-    
-    const payload = jwt.verify(token, process.env.JWT_SECRET);;
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
 
     req.user = payload;
 
     next();
   } catch (error) {
-    return res.status(403).json({ error: "Invalid token" });
+    return res.status(401).json({ error: "Invalid token" });
   }
 }
 

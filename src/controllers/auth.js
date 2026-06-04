@@ -66,8 +66,7 @@ async function login(req, res, next) {
       { expiresIn: process.env.JWT_EXPIRES_IN },
     );
 
-    res.status(200).json(user, token)
-
+    return res.status(200).json({user, token})
   } catch (error) {
     next(error)
   }
