@@ -1,14 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const { register, login } = require('../controllers/auth');
+const express = require("express")
+const router = express.Router()
+const { register, login } = require("../controllers/auth")
 
-/**
- * Tarea 2: Define las rutas de autenticación y conéctalas con los controladores.
- *
- * POST /auth/register → register
- * POST /auth/login    → login
- */
+router.post("/register", register)
+router.post("/login", login)
 
-// TODO: implementar
-
-module.exports = router;
+module.exports = router
