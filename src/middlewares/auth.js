@@ -1,5 +1,5 @@
-require('dotenv').config();
-const jwt = require('jsonwebtoken');
+require("dotenv").config();
+const jwt = require("jsonwebtoken");
 
 /**
  * Tarea 3: Middleware de autenticación JWT.
@@ -15,6 +15,15 @@ const jwt = require('jsonwebtoken');
  */
 function requireAuth(req, res, next) {
   // TODO: implementar
+  const token = req.get("Authorization");
+  
+  if (!token || !token.startsWith("Bearer ")) {
+    return res.status(401).json({ Error: "authentication error" });
+  }
+
+  const payload = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
+  req.user = payload;
+  next();
 }
 
 module.exports = { requireAuth };
