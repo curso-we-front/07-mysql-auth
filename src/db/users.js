@@ -1,5 +1,5 @@
-const pool = require('./connection');
-const bcrypt = require('bcrypt');
+const pool = require("./connection");
+const bcrypt = require("bcrypt");
 
 const SALT_ROUNDS = 10;
 
@@ -15,6 +15,16 @@ const SALT_ROUNDS = 10;
  */
 async function createUser({ name, email, password }) {
   // TODO: implementar
+  const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+  const [result] = await pool.query(
+    `INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)`,
+    [name, email, password_hash],
+  );
+  const [user] = await pool.query(
+    "SELECT id, email, name, role, created_at FROM users WHERE id = ?",
+    [result.insertId],
+  );
+  return user[0]
 }
 
 /**
@@ -25,6 +35,8 @@ async function createUser({ name, email, password }) {
  */
 async function findUserByEmail(email) {
   // TODO: implementar
+  const [user] = await pool.query(`SELECT * FROM users WHERE email = ?`, [email])
+  return user[0]? user[0] : null
 }
 
 /**
@@ -35,6 +47,8 @@ async function findUserByEmail(email) {
  */
 async function findUserById(id) {
   // TODO: implementar
+   const [user] = await pool.query(`SELECT * FROM users WHERE id = ?`, [id])
+  return user[0]? user[0] : null
 }
 
 module.exports = { createUser, findUserByEmail, findUserById };

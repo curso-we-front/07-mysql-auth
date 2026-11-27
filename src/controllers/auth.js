@@ -1,6 +1,7 @@
-require('dotenv').config();
-const jwt = require('jsonwebtoken');
-const { createUser, findUserByEmail } = require('../db/users');
+require("dotenv").config();
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const { createUser, findUserByEmail } = require("../db/users");
 
 /**
  * Tarea 2a: Registro de usuario.
@@ -15,6 +16,21 @@ const { createUser, findUserByEmail } = require('../db/users');
  */
 async function register(req, res, next) {
   // TODO: implementar
+  try {
+    const user = await createUser(req.body);
+    const { id, role, email } = user;
+    const payload = { id: id, email: email, role: role };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+    return res.status(201).json({ user, token });
+  } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") {
+      return res
+        .status(409)
+        .json({ Error: "Email address already registered" });
+    }
+  }
 }
 
 /**
@@ -32,6 +48,30 @@ async function register(req, res, next) {
  */
 async function login(req, res, next) {
   // TODO: implementar
+  const { email, password } = req.body;
+  const user = await findUserByEmail(email);
+  if (!user) {
+    return res.status(401).json({ Error: "Incorrect email or password" });
+  }
+  const isCorrectPassword = await bcrypt.compare(password, user.password_hash);
+  if (!isCorrectPassword) {
+    return res.status(401).json({ Error: "Incorrect email or password" });
+  }
+  const { id, role } = user;
+  const payload = { id: id, email: email, role: role };
+  const token = jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+  return res.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      created_at: user.created_at,
+    },
+    token,
+  });
 }
 
 module.exports = { register, login };
